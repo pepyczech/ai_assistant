@@ -6,7 +6,7 @@
 
 # ── CORE STREAMLIT FRAMEWORK ──────────────────────────────────────────────
 streamlit
-streamlit-components-html
+#streamlit-components-html
 
 # ── DATA PROCESSING & NUMERICS ────────────────────────────────────────────
 pandas
@@ -58,8 +58,8 @@ sentence-transformers
 
 # ── DOCUMENT PROCESSING & FILE LOADERS ────────────────────────────────────
 # PDF
+poppler-utils
 PyMuPDF
-fitz
 pypdf
 pdf2image
 
@@ -69,6 +69,9 @@ python-pptx
 openpyxl
 
 # Unstructured document parsing (supports many formats)
+#poppler-utils
+libmagic1
+tesseract-ocr
 unstructured[pdf,docx,xlsx,pptx,html]
 pillow-heif
 
