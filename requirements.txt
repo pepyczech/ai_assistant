@@ -27,6 +27,9 @@ lxml
 # Critical for OpenAI/external API connections
 certifi
 
+docx2txt
+markdownify
+
 # ── LLM API CLIENTS ───────────────────────────────────────────────────────
 # OpenAI (includes latest with httpx support)
 openai

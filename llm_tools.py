@@ -1,4 +1,3 @@
-# ----------- IMPORT
 from __future__ import annotations
 
 import dataclasses
@@ -45,7 +44,7 @@ from bs4 import BeautifulSoup
 from PIL import Image
 
 import base64
-
+from io import BytesIO, StringIO
 # ------------------------------------------------------------------------------------ FUNCTIONS
 
 aws=0
@@ -83,7 +82,11 @@ def install_package(package_names,pip=True):
     
     return result
 
-import boto3
+try:
+    import boto3
+except:
+    print('WARNING: package Boto3 not installed!')
+    
 import datetime
 
 from typing import List, Dict, Any
@@ -110,7 +113,15 @@ except:
 #from langchain.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader, CSVLoader # deprecated
 from langchain_community.document_loaders import PyPDFLoader, Docx2txtLoader, TextLoader, CSVLoader
 #from langchain_community.document_loaders import UnstructuredExcelLoader, AzureAIDocumentIntelligenceLoader
- 
+
+from langchain_community.document_loaders import (
+    PyPDFLoader, Docx2txtLoader, TextLoader, CSVLoader,
+    UnstructuredExcelLoader, UnstructuredPowerPointLoader,
+)
+
+import charset_normalizer
+from langchain_core.documents import Document
+
 import hashlib
 import ipaddress
 import json
@@ -207,7 +218,7 @@ except Exception as e:
     if aws:
         raise Exception('Install Strands!')
     else:
-        install_package('strands-agents')
+        _=install_package('strands-agents')
         from strands import Agent, tool
         from strands.models.bedrock import BedrockModel
 
@@ -738,8 +749,56 @@ def load_document(file, imgs=False, test=0):
 
     return "", ""
 
-def load_document_new(file_path: str, imgs: bool = False):
-    
+def image_file_to_base64(path: str) -> str:
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode("utf-8")
+
+def create_base64_composite(image_paths, target_size=None, bg_color=(255, 255, 255)) -> str:
+    images, resized = [], []
+    try:
+        for path in image_paths:
+            with Image.open(path) as im:
+                images.append(im.convert("RGB").copy())
+
+        if target_size is None:
+            max_w = max(img.width for img in images)
+            max_h = max(img.height for img in images)
+        else:
+            max_w, max_h = target_size
+
+        for img in images:
+            img.thumbnail((max_w, max_h), Image.LANCZOS)
+            canvas = Image.new("RGB", (max_w, max_h), bg_color)
+            offset = ((max_w - img.width) // 2, (max_h - img.height) // 2)
+            canvas.paste(img, offset)
+            resized.append(canvas)
+
+        composite = Image.new("RGB", (max_w, max_h * len(resized)), bg_color)
+        for idx, img in enumerate(resized):
+            composite.paste(img, (0, idx * max_h))
+
+        buffer = BytesIO()
+        composite.save(buffer, format="PNG")
+        b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+        composite.close()
+        return b64
+    finally:
+        for img in images:
+            img.close()
+        for img in resized:
+            img.close()
+
+def load_text_file_safely(file_path: str) -> list[Document]:
+    with open(file_path, "rb") as f:
+        raw = f.read()
+    result = charset_normalizer.from_bytes(raw).best()
+    if result is None:
+        with open(file_path, "r", encoding="latin-1") as f:
+            text = f.read()
+    text = str(result)
+    return [Document(page_content=text, metadata={"source": file_path})]
+
+def load_document_v2(file_path: str, imgs: bool = False):
     _, extension = os.path.splitext(file_path)
     extension = extension.lower()
     success=1
@@ -750,20 +809,24 @@ def load_document_new(file_path: str, imgs: bool = False):
     elif extension in (".ppt", ".pptx"):
         loader = UnstructuredPowerPointLoader(file_path, mode="elements")
     elif extension in (".txt",".dat",".md"):
-        loader = TextLoader(file_path)
+        loader = TextLoader(file_path, autodetect_encoding=True)
     elif extension == ".csv":
         loader = CSVLoader(file_path=file_path)
     elif ".xls" in extension:
         loader = UnstructuredExcelLoader(file_path, mode="elements")
-    elif extension in (".png", ".jpg", ".jpeg"):
-        return None, image_file_to_base64(file_path)
+    elif extension in (".png", ".jpg", ".jpeg", ".jpe", ".jp2", ".jpx"):
+        text = image_file_to_base64(file_path)
+        docs=[text]
     else:
         success=0
         docs=None
         text=None
 
     if success:
-        docs = loader.load()
+        try:
+            docs = loader.load()
+        except:
+            docs=load_text_file_safely(file_path)
         text = "\n\n---\n\n".join(doc.page_content for doc in docs)
     elif extension==".json":
         with open(file_path, "r", encoding="utf-8") as f:
@@ -773,16 +836,16 @@ def load_document_new(file_path: str, imgs: bool = False):
         try:
             import xmltodict
         except:
-            llmt.install_package('xmltodict')
+            _=install_package('xmltodict')
             import xmltodict
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, 'r', encoding='latin-1') as f:
             text = json.dumps(xmltodict.parse(f.read()))
         docs = [text]
     elif any([extension==ext for ext in ['.html','.css','.txt','.dat','.py','.sql']]):
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, "r", encoding="latin-1") as f:
             text = f.read()
         docs = [text]
-    
+        
     return docs, text
 
 # ----------------------------------------------------------------------- FUNCTIONS - CALLING LLMS
@@ -5370,7 +5433,7 @@ def compare_docs(fns,ref_doc,pref='',creds=None,prompt=None,template_body=None,p
     PROVIDER: ollama, openai, aws / bedrock / amazon, bedrock_api
     '''
     
-    ref_doc_data,ref_doc_data_str=load_document(ref_doc)
+    ref_doc_data,ref_doc_data_str=load_document_v2(ref_doc)
     
     # Iterate over the documents, load & process
     
@@ -5401,7 +5464,7 @@ def compare_docs(fns,ref_doc,pref='',creds=None,prompt=None,template_body=None,p
         try:
 
             # Load the doc
-            doc_data,doc_data_str=load_document(f1)
+            doc_data,doc_data_str=load_document_v2(f1)
 
             sys_prompt = '''You are an expert technical recruiter and talent assessment specialist with 15+ years of experience evaluating candidates across engineering, data science, and technology roles. Your task is to produce a rigorous, evidence-based assessment of how well a candidate's CV matches a given job specification.
 

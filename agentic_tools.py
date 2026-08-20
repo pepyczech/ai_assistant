@@ -1,28 +1,40 @@
 from __future__ import annotations
 
-def install_package(package_name,pip=True):
+aws=0
+try:
+    if "HOME" in os.environ:
+        if "ec2-user" in os.environ.get("HOME"):
+            aws=1
+except:
+    aws=0
+
+def install_package(package_names,pip=True):
 
     """Installs a pip package in the current Python environment."""
-
-    print(f"Installing {package_name}...")
-    import subprocess
-    try:
-        # sys.executable gets the path to the current Python interpreter
-        # This runs: /path/to/python -m pip install <package_name>
-        if pip:
-            subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', package_name])
-        else:
-            subprocess.check_call(['conda', 'install', '-y', '-c', 'conda-forge', package_name])
-        
-        print(f"Successfully installed {package_name}!")
-        result=True
-    except Exception as e:
-        print(f'ERROR: Failed to install package {package_name}: {e}')
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exception(exc_type, exc_value, exc_traceback,limit=5, file=sys.stdout)
-        result=False
+    if isinstance(package_names, str):
+        package_names = [package_names]
+    result={}
+    for package_name in package_names:
+        print(f"Installing {package_name}...")
+        import subprocess
+        try:
+            # sys.executable gets the path to the current Python interpreter
+            # This runs: /path/to/python -m pip install <package_name>
+            if pip:
+                subprocess.check_call([sys.executable, '-m', 'pip', 'install', '--user', package_name])
+            else:
+                subprocess.check_call(['conda', 'install', '-y', '-c', 'conda-forge', package_name])
+            
+            print(f"Successfully installed {package_name}!")
+            result[package_name]=True
+        except Exception as e:
+            print(f'ERROR: Failed to install package {package_name}: {e}')
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback.print_exception(exc_type, exc_value, exc_traceback,limit=5, file=sys.stdout)
+            result[package_name]=False
     
     return result
+
 
 import json
 import os
@@ -30,10 +42,28 @@ import re
 import py_compile
 import tempfile
 
-import boto3
+try:
+    import boto3
+except:
+    print('WARNING: package Boto3 not installed!')
+    
 import pandas as pd
-from strands import Agent, tool
-from strands.models import BedrockModel
+
+try:
+    from strands import Agent, tool
+    from strands.models import BedrockModel
+    from strands.models import BedrockModel
+    from strands_tools import file_read
+    from strands.types.exceptions import MaxTokensReachedException
+except:
+    if aws:
+        raise Exception("!!!Install Strands")
+    else: 
+        _=install_package('strands-agents')
+        from strands import Agent, tool
+        from strands.models import BedrockModel
+        from strands_tools import file_read
+        from strands.types.exceptions import MaxTokensReachedException
 
 # loop_observer is your existing callback handler; imported as in the original.
 #from observers import loop_observer  # noqa: F401  (adjust to your module path)
@@ -143,23 +173,7 @@ try:
 except:
     print('BS4 not installed!')
 
-    from bs4 import BeautifulSoup
-    from markdownify import markdownify
-
 import pandas as pd
-
-try:
-    from strands import Agent, tool
-    from strands.models import BedrockModel
-    from strands_tools import file_read
-    from strands.types.exceptions import MaxTokensReachedException
-except:
-    #!pip install strands-agents strands-agents-tools
-    _=install_package(['strands-agents', 'strands-agents-tools'], pip=True)
-    from strands import Agent, tool
-    from strands.models import BedrockModel
-    from strands_tools import file_read
-    from strands.types.exceptions import MaxTokensReachedException
 
 # --------------------------------------------------------------------------- #
 # VBA TOOLS

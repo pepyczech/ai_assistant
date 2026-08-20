@@ -1,9 +1,6 @@
 import streamlit as st
 
-try:
-    import streamlit.components.v1 as components
-except:
-    import streamlit.iframe as components
+import streamlit.components.v1 as components
     
 import warnings
 from datetime import datetime
@@ -18,8 +15,6 @@ import base64
 import uuid
 from io import BytesIO, StringIO
 from pathlib import Path
-
-
     
 from PIL import Image
 import html as html_lib
@@ -593,52 +588,6 @@ def create_base64_composite(image_paths, target_size=None, bg_color=(255, 255, 2
 
 # ── Document loading ──────────────────────────────────────────────────────────
 
-def load_document(file_path: str, imgs: bool = False):
-    _, extension = os.path.splitext(file_path)
-    extension = extension.lower()
-    success=1
-    if extension == ".pdf":
-        loader = PyPDFLoader(file_path=file_path, extract_images=imgs)
-    elif extension == ".docx":
-        loader = Docx2txtLoader(file_path)
-    elif extension in (".ppt", ".pptx"):
-        loader = UnstructuredPowerPointLoader(file_path, mode="elements")
-    elif extension in (".txt",".dat",".md"):
-        loader = TextLoader(file_path)
-    elif extension == ".csv":
-        loader = CSVLoader(file_path=file_path)
-    elif ".xls" in extension:
-        loader = UnstructuredExcelLoader(file_path, mode="elements")
-    elif extension in (".png", ".jpg", ".jpeg"):
-        return None, image_file_to_base64(file_path)
-    else:
-        success=0
-        docs=None
-        text=None
-
-    if success:
-        docs = loader.load()
-        text = "\n\n---\n\n".join(doc.page_content for doc in docs)
-    elif extension==".json":
-        with open(file_path, "r", encoding="utf-8") as f:
-            text = json.dumps(json.load(f))
-        docs = [text]
-    elif extension==".xml":
-        try:
-            import xmltodict
-        except:
-            llmt.install_package('xmltodict')
-            import xmltodict
-        with open(file_path, 'r', encoding='utf-8') as f:
-            text = json.dumps(xmltodict.parse(f.read()))
-        docs = [text]
-    elif any([extension==ext for ext in ['.html','.css','.txt','.dat','.py','.sql']]):
-        with open(file_path, "r", encoding="utf-8") as f:
-            text = f.read()
-        docs = [text]
-    
-    return docs, text
-
 # ── Conversation helpers ──────────────────────────────────────────────────────
 def reset_conversation():
     if st.session_state.get("chat_history"):
@@ -930,7 +879,6 @@ with tab1:
                 load_credentials=1
                 st.session_state.credentials=None
                 
-
         if load_credentials:
 
             creds=None
@@ -1242,7 +1190,7 @@ with tab1:
                     if ext in IMAGE_EXTENSIONS:
                         img_paths.append(file_path)
                     else:
-                        _, docs = load_document(file_path)
+                        _, docs = llmt.load_document_v2(file_path)
                         if docs:
                             input_files_text += docs + "\n\n---\n\n"
                         else:
@@ -1256,7 +1204,7 @@ with tab1:
         if img_paths:
             try:
                 if len(img_paths) == 1:
-                    _, img_b64 = load_document(img_paths[0], imgs=True)
+                    _, img_b64 = llmt.load_document_v2(img_paths[0], imgs=True)
                 else:
                     img_b64 = create_base64_composite(img_paths, target_size=(512, 512))
                 if show_pictures and img_b64:
