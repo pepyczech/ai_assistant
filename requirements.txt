@@ -41,9 +41,9 @@ google-genai>=0.3.0
 ollama>=0.1.0
 
 # AWS Bedrock & Services
-boto3>=1.28.0
-botocore>=1.31.0
-aiobotocore>=2.5.0  # For async DynamoDB/Bedrock operations
+#boto3>=1.28.0
+#botocore>=1.31.0
+#aiobotocore>=2.5.0  # For async DynamoDB/Bedrock operations
 
 # ── LANGCHAIN ECOSYSTEM ───────────────────────────────────────────────────
 langchain>=0.1.0
@@ -53,7 +53,7 @@ langchain-google-genai>=0.1.0
 langchain-openai>=0.1.0
 
 # ── VECTOR DATABASES & EMBEDDINGS ────────────────────────────────────────
-chromadb>=0.4.0
+#chromadb>=0.4.0
 sentence-transformers>=2.2.0
 
 # ── DOCUMENT PROCESSING & FILE LOADERS ────────────────────────────────────
@@ -82,27 +82,27 @@ pytz>=2023.3
 
 # ── ASYNC & CONCURRENCY ───────────────────────────────────────────────────
 # For high-performance DynamoDB/async API calls
-aiohttp>=3.9.0
-asyncio-contextmanager>=1.0.0
+#aiohttp>=3.9.0
+#asyncio-contextmanager>=1.0.0
 
 # ── DATABASE DRIVERS ──────────────────────────────────────────────────────
 # Oracle Database
-oracledb>=1.3.0
+#oracledb>=1.3.0
 
 # Vertica (HP Enterprise database)
-vertica-python>=1.3.0
+#vertica-python>=1.3.0
 
 # PostgreSQL (if needed for other operations)
-psycopg2-binary>=2.9.0
+#psycopg2-binary>=2.9.0
 
 # SQLAlchemy (for flexible SQL interactions)
-sqlalchemy>=2.0.0
+#sqlalchemy>=2.0.0
 
 # ── LOGGING & OBSERVABILITY ──────────────────────────────────────────────
 python-json-logger>=2.0.0
 
 # ── UTILITY & HELPER PACKAGES ────────────────────────────────────────────
-python-dotenv>=1.0.0
+#python-dotenv>=1.0.0
 pydantic>=2.0.0
 
 # ============================================================================
