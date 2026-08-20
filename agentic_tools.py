@@ -1,5 +1,13 @@
 from __future__ import annotations
 
+try:
+    # Load aux DB routines
+    import dbConnect as dbc
+    import importlib
+    importlib.reload(dbc)
+except Exception as e:
+    print(f'WARNING: package dbConnect not loaded: {e}')
+
 aws=0
 try:
     if "HOME" in os.environ:
@@ -46,7 +54,7 @@ try:
     import boto3
 except:
     print('WARNING: package Boto3 not installed!')
-    
+
 import pandas as pd
 
 try:

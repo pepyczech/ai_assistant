@@ -86,7 +86,7 @@ try:
     import boto3
 except:
     print('WARNING: package Boto3 not installed!')
-    
+
 import datetime
 
 from typing import List, Dict, Any
@@ -252,7 +252,7 @@ except Exception as e:
     )
 
 try:
-    # Load aux plotting routines
+    # Load aux DB routines
     import dbConnect as dbc
     import importlib
     importlib.reload(dbc)
@@ -1313,7 +1313,7 @@ def call_bedrock_api_async(prompt=None,model='us.amazon.nova-lite-v1:0', api_url
     
     if (api_url is None) | (api_key is None):
         try:
-            import dbConnect as dbc
+            #import dbConnect as dbc
             odb_creds=dbc.jsonpass(pattern=None,fn='..//Admin//credentials.txt')
             api_url =odb_creds['bedrock_api_async']['API_BASE']
             api_key =odb_creds['bedrock_api_async']['API_KEY']
@@ -1563,7 +1563,7 @@ def call_bedrock(prompt=None,model='us.amazon.nova-lite-v1:0', api_url=None, api
             
             if (api_url is None) | (api_key is None):
                 try:
-                    import dbConnect as dbc
+                    #import dbConnect as dbc
                     odb_creds=dbc.jsonpass(pattern=None,fn=credentials_path)
                     api_url =odb_creds['bedrock_api_async']['API_BASE']
                     api_key =odb_creds['bedrock_api_async']['API_KEY']
@@ -1579,7 +1579,7 @@ def call_bedrock(prompt=None,model='us.amazon.nova-lite-v1:0', api_url=None, api
             
             if (api_url is None) | (api_key is None):
                 try:
-                    import dbConnect as dbc
+                    #import dbConnect as dbc
                     odb_creds=dbc.jsonpass(pattern=None,fn=credentials_path)
                     api_url =odb_creds['bedrock_api']['API_BASE']
                     api_key =odb_creds['bedrock_api']['API_KEY']
@@ -3183,9 +3183,12 @@ class BedrockApiModel(Model):
 
 # --- credentials (reuse your dbConnect pattern if preferred) ---------------
 def load_credentials(fn="..//Admin//credentials.txt",top_k="bedrock_api_async",url_k="API_BASE",key_k="API_KEY"):
-    import dbConnect as dbc
-    creds = dbc.jsonpass(pattern=None, fn=fn)
-    a = creds[top_k]
+    try:
+        import dbConnect as dbc
+        creds = dbc.jsonpass(pattern=None, fn=fn)
+        a = creds[top_k]
+    except:
+        return None,None
     return a[url_k], a[key_k]
 
 def call_bedrock_agent_api_async(user_prompt,model_id='eu.anthropic.claude-sonnet-4-6',temp=0.1,max_tokens=4096,poll_interval=2.0,
@@ -3511,8 +3514,12 @@ DEFAULT_SYSTEM_PROMPT = (
 # ----------------------------------------------------------------------------
 def _load_creds(odb_creds=None, fn='..//Admin//credentials.txt'):
     """Lazy credential load, identical convention to call_gpt()/call_claude()."""
-    if odb_creds is None:
-        odb_creds = dbc.jsonpass(pattern=None, fn=fn)
+    try:
+        if odb_creds is None:
+            import dbConnect as dbc
+            odb_creds = dbc.jsonpass(pattern=None, fn=fn)
+    except:
+        return None
     return odb_creds
 
 

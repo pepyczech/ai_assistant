@@ -47,8 +47,8 @@ try:
 except:
     _=llmt.install_package('docx2txt', pip=True)
 
-import dbConnect as dbc
-importlib.reload(dbc)
+#import dbConnect as dbc
+#importlib.reload(dbc)
 
 try:
     from ollama import chat as ollama_chat, list as ollama_list
