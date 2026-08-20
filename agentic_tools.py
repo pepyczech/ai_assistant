@@ -4037,7 +4037,7 @@ def autogluon_automl(
             return TabularPredictor
         except ImportError as e:
             #!pip install autogluon.tabular
-             _=install_package('autogluon.tabular', pip=True)
+            _=install_package('autogluon.tabular', pip=True)
             '''
             raise ImportError(
                 "autogluon.tabular not found. "
