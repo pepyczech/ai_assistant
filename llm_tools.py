@@ -106,7 +106,7 @@ from collections.abc import Iterable
 try:
     import openai
 except:
-    print('WARNING: package Anthropic not installed!')
+    print('WARNING: package OpenAI not installed!')
 
 # from langchain.chat_models import ChatOpenAI # deprecated
 
@@ -1990,7 +1990,13 @@ def call_gpt(query, model_code='o4-mini', temp=0.95, sys_prompt=None, show=0,
     if odb_creds is None:
         odb_creds = dbc.jsonpass(pattern=None, fn='..//Admin//credentials.txt')
 
-    OPENAI_API_KEY = odb_creds['openai']['OPENAI_API_KEY']
+    if 'openai' in odb_creds.keys():
+        OPENAI_API_KEY = odb_creds['openai']['OPENAI_API_KEY']
+    elif 'OPENAI_API_KEY' in odb_creds.keys():
+        OPENAI_API_KEY = odb_creds['OPENAI_API_KEY']
+    else:
+        OPENAI_API_KEY = odb_creds['API_KEY']
+
     openai.api_key = OPENAI_API_KEY
     client = openai.OpenAI(api_key=OPENAI_API_KEY)
 
@@ -2062,7 +2068,6 @@ def call_gemini(query, model_code='gemini-2.0-flash', temp=0.95, sys_prompt=None
     """Google Gemini wrapper (new `google-genai` SDK). Accepts either a
     plain string or a multimodal content list as `query`.
 
-    
     Google Gemini API wrapper — drop-in replacement for call_gpt()
     Docs: https://ai.google.dev/gemini-api/docs
 
@@ -2117,7 +2122,13 @@ def call_gemini(query, model_code='gemini-2.0-flash', temp=0.95, sys_prompt=None
     if odb_creds is None:
         odb_creds = dbc.jsonpass(pattern=None, fn='..//Admin//credentials.txt')
 
-    GEMINI_API_KEY = odb_creds['gemini']['GEMINI_API_KEY']
+    if 'gemini' in odb_creds.keys():
+        GEMINI_API_KEY = odb_creds['gemini']['GEMINI_API_KEY']
+    elif 'GEMINI_API_KEY' in odb_creds.keys():
+        GEMINI_API_KEY = odb_creds['GEMINI_API_KEY']
+    else:
+        GEMINI_API_KEY = odb_creds['API_KEY']
+
     client = genai.Client(api_key=GEMINI_API_KEY)
 
     if sys_prompt is None:
@@ -2224,7 +2235,13 @@ def call_claude(query, model_code='claude-sonnet-4-6', temp=0.95, sys_prompt=Non
     if odb_creds is None:
         odb_creds = dbc.jsonpass(pattern=None, fn='..//Admin//credentials.txt')
 
-    ANTHROPIC_API_KEY = odb_creds['anthropic']['ANTHROPIC_API_KEY']
+    if 'anthropic' in odb_creds.keys():
+        ANTHROPIC_API_KEY = odb_creds['anthropic']['ANTHROPIC_API_KEY']
+    elif 'ANTHROPIC_API_KEY' in odb_creds.keys():
+        ANTHROPIC_API_KEY = odb_creds['ANTHROPIC_API_KEY']
+    else:
+        ANTHROPIC_API_KEY = odb_creds['API_KEY']
+
     client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
     if sys_prompt is None:
@@ -2382,7 +2399,12 @@ def call_openrouter(query, model_code='openai/gpt-4o-mini', temp=0.95, sys_promp
     if odb_creds is None:
         odb_creds = dbc.jsonpass(pattern=None, fn='..//Admin//credentials.txt')
 
-    OPENROUTER_API_KEY = odb_creds['openrouter']['OPENROUTER_API_KEY']
+    if 'openrouter' in odb_creds.keys():
+        OPENROUTER_API_KEY = odb_creds['openrouter']['OPENROUTER_API_KEY']
+    elif 'OPENROUTER_API_KEY' in odb_creds.keys():
+        OPENROUTER_API_KEY = odb_creds['OPENROUTER_API_KEY']
+    else:
+        OPENROUTER_API_KEY = odb_creds['API_KEY']
 
     BASE_URL = "https://openrouter.ai/api/v1"
 
@@ -3523,7 +3545,7 @@ def _load_creds(odb_creds=None, fn='..//Admin//credentials.txt'):
     return odb_creds
 
 
-def resolve_agent_tools(tools_import=None, show: int = 0) -> List[Any]:
+def resolve_agent_tools(tools_import=None, show: int = 0, persona:str = 'general') -> List[Any]:
     """
     Tool-selection logic lifted from call_bedrock_agent_api_async() so every
     provider gets the same toolset.
@@ -3549,15 +3571,9 @@ def resolve_agent_tools(tools_import=None, show: int = 0) -> List[Any]:
         recommended_tools = [python_repl, file_read, file_write,
                              current_time, http_request, diagram]
     else:
-        _t = define_strands_tools()
-        if isinstance(_t, (tuple, list)):
-            (get_current_date, word_count, calculate, run_python_code, web_search,
-             read_file, write_file, run_shell_command, json_query) = _t
-            recommended_tools = [get_current_date, word_count, calculate,
-                                 run_python_code, web_search, read_file,
-                                 write_file, json_query]   # shell deliberately omitted
-        else:
-            recommended_tools = list(_t)
+        recommended_tools = agt.agentic_toolsets(persona)
+        if not isinstance(recommended_tools, (tuple, list)):
+            recommended_tools = list(recommended_tools)
 
     return tools_import + recommended_tools
 
@@ -3620,7 +3636,7 @@ def _build_agent(model, sys_prompt, tool_list, max_loops, react=0, show=0):
 #  1. ANTHROPIC  (Claude)
 # ============================================================================
 def define_claude_agent(
-    model_code: str = 'claude-sonnet-4-5-20250929',
+    model_code: str = 'claude-sonnet-5',
     temp: float = 0.95,
     sys_prompt: Optional[str] = None,
     show: int = 0,
@@ -3649,8 +3665,17 @@ def define_claude_agent(
             "  pip install 'strands-agents[anthropic]' strands-agents-tools"
         ) from e
 
-    odb_creds = _load_creds(odb_creds)
-    api_key = odb_creds['anthropic']['ANTHROPIC_API_KEY']
+    if odb_creds is None:
+        odb_creds = dbc.jsonpass(pattern=None, fn='..//Admin//credentials.txt')
+    elif isinstance(odb_creds, str): 
+        odb_creds = _load_creds(odb_creds)
+    
+    if 'anthropic' in odb_creds.keys():
+        ANTHROPIC_API_KEY = odb_creds['anthropic']['ANTHROPIC_API_KEY']
+    elif 'ANTHROPIC_API_KEY' in odb_creds.keys():
+        ANTHROPIC_API_KEY = odb_creds['ANTHROPIC_API_KEY']
+    else:
+        ANTHROPIC_API_KEY = odb_creds['API_KEY']
 
     temp, max_tokens = _clamp(temp, max_tokens)
     sys_prompt = _pick_sys_prompt(sys_prompt, react)
@@ -3667,7 +3692,7 @@ def define_claude_agent(
         params.update(extra_params)
 
     model = AnthropicModel(
-        client_args={"api_key": api_key},
+        client_args={"api_key": ANTHROPIC_API_KEY},
         model_id=model_code,
         max_tokens=max_tokens,
         params=params,
@@ -3723,7 +3748,7 @@ def call_claude_agent(
 #  2. GOOGLE  (Gemini)
 # ============================================================================
 def define_gemini_agent(
-    model_code: str = 'gemini-2.5-flash',
+    model_code: str = 'gemini-3.6-flash',
     temp: float = 0.95,
     sys_prompt: Optional[str] = None,
     show: int = 0,
@@ -3743,8 +3768,18 @@ def define_gemini_agent(
 
     Install: pip install 'strands-agents[gemini]'   (or [litellm] for fallback)
     """
-    odb_creds = _load_creds(odb_creds)
-    api_key = odb_creds['gemini']['GEMINI_API_KEY']
+
+    if odb_creds is None:
+        odb_creds = dbc.jsonpass(pattern=None, fn='..//Admin//credentials.txt')
+    elif isinstance(odb_creds, str): 
+        odb_creds = _load_creds(odb_creds)
+    
+    if 'gemini' in odb_creds.keys():
+        GEMINI_API_KEY = odb_creds['gemini']['GEMINI_API_KEY']
+    elif 'GEMINI_API_KEY' in odb_creds.keys():
+        GEMINI_API_KEY = odb_creds['GEMINI_API_KEY']
+    else:
+        GEMINI_API_KEY = odb_creds['API_KEY']
 
     temp, max_tokens = _clamp(temp, max_tokens)
     sys_prompt = _pick_sys_prompt(sys_prompt, react)
@@ -3771,7 +3806,7 @@ def define_gemini_agent(
             params.update(extra_params)
 
         model = GeminiModel(
-            client_args={"api_key": api_key},
+            client_args={"api_key": GEMINI_API_KEY},
             model_id=model_code,
             params=params,
         )
@@ -3814,7 +3849,7 @@ def define_gemini_agent(
 
 def call_gemini_agent(
     prompt,
-    model: str = 'gemini-2.5-flash',
+    model: str = 'gemini-3.6-flash',
     temp: float = 0.95,
     sys_prompt: Optional[str] = None,
     show: int = 0,
@@ -3892,9 +3927,18 @@ def define_gpt_agent(
             "Missing OpenAI provider. Install with:\n"
             "  pip install 'strands-agents[openai]' strands-agents-tools"
         ) from e
-
-    odb_creds = _load_creds(odb_creds)
-    api_key = odb_creds['openai']['OPENAI_API_KEY']
+    
+    if odb_creds is None: 
+        odb_creds = dbc.jsonpass(pattern=None, fn='..//Admin//credentials.txt')
+    elif isinstance(odb_creds, str): 
+        odb_creds = _load_creds(odb_creds)
+    
+    if 'openai' in odb_creds.keys():
+        OPENAI_API_KEY = odb_creds['openai']['OPENAI_API_KEY']
+    elif 'OPENAI_API_KEY' in odb_creds.keys():
+        OPENAI_API_KEY = odb_creds['OPENAI_API_KEY']
+    else:
+        OPENAI_API_KEY= odb_creds['API_KEY']
 
     temp, max_tokens = _clamp(temp, max_tokens)
     sys_prompt = _pick_sys_prompt(sys_prompt, react)
@@ -3914,7 +3958,7 @@ def define_gpt_agent(
         params.update(extra_params)
 
     model = OpenAIModel(
-        client_args={"api_key": api_key},
+        client_args={"api_key": OPENAI_API_KEY},
         model_id=model_code,
         params=params,
     )
@@ -4079,15 +4123,24 @@ def define_openrouter_agent(
             "  pip install 'strands-agents[openai]' strands-agents-tools"
         ) from e
 
-    odb_creds = _load_creds(odb_creds)
-    api_key = odb_creds['openrouter']['OPENROUTER_API_KEY']
+    if odb_creds is None:
+        odb_creds = dbc.jsonpass(pattern=None, fn='..//Admin//credentials.txt')
+    elif isinstance(odb_creds, str): 
+        odb_creds = _load_creds(odb_creds)
+    
+    if 'openrouter' in odb_creds.keys():
+        OPENROUTER_API_KEY = odb_creds['openrouter']['OPENROUTER_API_KEY']
+    elif 'OPENROUTER_API_KEY' in odb_creds.keys():
+        OPENROUTER_API_KEY = odb_creds['OPENROUTER_API_KEY']
+    else:
+        OPENROUTER_API_KEY = odb_creds['API_KEY']
 
     temp, max_tokens = _clamp(temp, max_tokens)
     sys_prompt = _pick_sys_prompt(sys_prompt, react)
 
     resolved_model = resolve_openrouter_model(
         model_code=model_code,
-        api_key=api_key,
+        api_key=OPENROUTER_API_KEY,
         mode=mode,
         free_model_pick=free_model_pick,
         web_search=web_search,
@@ -4101,7 +4154,7 @@ def define_openrouter_agent(
 
     model = OpenAIModel(
         client_args={
-            "api_key": api_key,
+            "api_key": OPENROUTER_API_KEY,
             "base_url": OPENROUTER_BASE_URL,
             "default_headers": {
                 "HTTP-Referer": odb_creds.get('openrouter', {}).get('SITE_URL', ''),
@@ -4119,7 +4172,6 @@ def define_openrouter_agent(
               f"params={params} tools={len(tool_list)}")
 
     return _build_agent(model, sys_prompt, tool_list, max_loops, react=react, show=show)
-
 
 def call_openrouter_agent(
     prompt,
@@ -4218,7 +4270,7 @@ def call_agent(prompt, provider: str = 'claude', model: Optional[str] = None, **
 
 def define_strands_agent(model_id: str = "us.anthropic.claude-sonnet-5",tools_import=[],max_tokens=4096,
                         min_confidence: float = 0.70,floor_confidence: float = 0.30,sys_prompt=None,
-                         show=0) -> Agent:
+                        persona='general',show=0) -> Agent:
     
     """
     Build and return the Dataset Discovery Agent.
@@ -4248,22 +4300,18 @@ def define_strands_agent(model_id: str = "us.anthropic.claude-sonnet-5",tools_im
                 if show: print('********** Running on AWS')
     except:
         if show: print('********** Running on Locally')
-            
-    [crawl_site, identify_datasets, extract_dataset, normalize_to_csv,
-     request_human_review, fetch_page, save_file, save_scraper_code,
-     run_python] = define_strands_tools()
 
     # if on AWS:
+    recommended_tools= agt.agentic_toolsets(persona)
     if aws:
         from strands_tools import python_repl, file_read, file_write, current_time, http_request, diagram
-        recommended_tools = [python_repl, file_read, current_time, http_request, diagram,
-                             crawl_site, identify_datasets, extract_dataset, normalize_to_csv,
-                             request_human_review, fetch_page, save_file, save_scraper_code]
-    else:
+        recommended_tools = recommended_tools+[python_repl, file_read, current_time, http_request, diagram]
+
+        '''
         recommended_tools = [crawl_site, identify_datasets, extract_dataset, normalize_to_csv,
                              request_human_review, fetch_page, save_file, save_scraper_code,
                              run_python]
-        
+        '''
     ALL_TOOLS = tools_import+recommended_tools
 
     if sys_prompt is None: 
@@ -4378,7 +4426,7 @@ def itad_crawls(pgs, user_prompt, mid="us.anthropic.claude-sonnet-5",
 # Agent builder (repurposed from the dataset-discovery version)
 # --------------------------------------------------------------------------- #
 
-def build_agent(model_id: str = 'eu.anthropic.claude-sonnet-4-6',
+def build_agent(model_id: str = 'eu.anthropic.claude-sonnet-5',
                 temp: float = 0.4, min_confidence: float = 0.75,
                 floor_confidence: float = 0.4, seek_approval: bool = False) -> Agent:
     """An agent that explores Office files and translates their VBA into one
