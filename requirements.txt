@@ -1,0 +1,165 @@
+# ============================================================================
+# GenAI Streamlit Application - Complete Requirements
+# Generated for: ollama_streamlit_v2.py + llm_tools.py
+# Python 3.10+ (tested on 3.12)
+# ============================================================================
+
+# ── CORE STREAMLIT FRAMEWORK ──────────────────────────────────────────────
+streamlit>=1.28.0
+streamlit-components-html>=0.1.0
+
+# ── DATA PROCESSING & NUMERICS ────────────────────────────────────────────
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.10.0
+
+# ── IMAGE HANDLING ────────────────────────────────────────────────────────
+Pillow>=10.0.0
+
+# ── WEB & HTTP CLIENTS ────────────────────────────────────────────────────
+requests>=2.31.0
+httpx>=0.24.0
+httpcore>=1.0.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# ── SSL/CERTIFICATE MANAGEMENT ────────────────────────────────────────────
+# Critical for OpenAI/external API connections
+certifi>=2023.7.22
+
+# ── LLM API CLIENTS ───────────────────────────────────────────────────────
+# OpenAI (includes latest with httpx support)
+openai>=1.3.0
+
+# Anthropic Direct API
+anthropic>=0.7.0
+
+# Google GenAI
+google-genai>=0.3.0
+
+# Ollama (local LLM inference)
+ollama>=0.1.0
+
+# AWS Bedrock & Services
+boto3>=1.28.0
+botocore>=1.31.0
+aiobotocore>=2.5.0  # For async DynamoDB/Bedrock operations
+
+# ── LANGCHAIN ECOSYSTEM ───────────────────────────────────────────────────
+langchain>=0.1.0
+langchain-community>=0.0.10
+langchain-anthropic>=0.1.0
+langchain-google-genai>=0.1.0
+langchain-openai>=0.1.0
+
+# ── VECTOR DATABASES & EMBEDDINGS ────────────────────────────────────────
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+
+# ── DOCUMENT PROCESSING & FILE LOADERS ────────────────────────────────────
+# PDF
+PyMuPDF>=1.23.0  # fitz
+pypdf>=3.17.0
+pdf2image>=1.16.0
+
+# Microsoft Office formats
+python-docx>=0.8.11
+python-pptx>=0.6.21
+openpyxl>=3.10.0
+
+# Unstructured document parsing (supports many formats)
+unstructured[pdf,docx,xlsx,pptx,html]>=0.10.0
+pillow-heif>=0.14.0  # Extended image format support
+
+# ── AGENTIC FRAMEWORKS ────────────────────────────────────────────────────
+# Strands SDK for structured agentic workflows
+strands-agents>=0.5.0
+strands-agents-tools>=0.5.0
+
+# ── DATA & FORMAT UTILITIES ───────────────────────────────────────────────
+python-dateutil>=2.8.2
+pytz>=2023.3
+
+# ── ASYNC & CONCURRENCY ───────────────────────────────────────────────────
+# For high-performance DynamoDB/async API calls
+aiohttp>=3.9.0
+asyncio-contextmanager>=1.0.0
+
+# ── DATABASE DRIVERS ──────────────────────────────────────────────────────
+# Oracle Database
+oracledb>=1.3.0
+
+# Vertica (HP Enterprise database)
+vertica-python>=1.3.0
+
+# PostgreSQL (if needed for other operations)
+psycopg2-binary>=2.9.0
+
+# SQLAlchemy (for flexible SQL interactions)
+sqlalchemy>=2.0.0
+
+# ── LOGGING & OBSERVABILITY ──────────────────────────────────────────────
+python-json-logger>=2.0.0
+
+# ── UTILITY & HELPER PACKAGES ────────────────────────────────────────────
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+
+# ============================================================================
+# OPTIONAL EXTRAS (uncomment as needed)
+# ============================================================================
+
+# For advanced visualization
+# plotly>=5.14.0
+# matplotlib>=3.7.0
+
+# For Redis caching (optional performance improvement)
+# redis>=5.0.0
+
+# For deployment on AWS Lambda/SageMaker
+# aws-lambda-powertools>=2.20.0
+
+# ============================================================================
+# DEV / TESTING DEPENDENCIES (if needed for development)
+# ============================================================================
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
+# black>=23.0.0
+# flake8>=6.0.0
+# mypy>=1.5.0
+
+# ============================================================================
+# INSTALLATION NOTES
+# ============================================================================
+# 
+# 1. OPTIMAL CONDA SETUP (recommended for this stack):
+#    conda create -n gen_ai python=3.12
+#    conda activate gen_ai
+#    pip install -r requirements.txt
+#
+# 2. SSL CERTIFICATE FIX (if OpenAI connection fails):
+#    python -m pip install --upgrade certifi
+#    conda update openssl
+#    pip install --upgrade --force-reinstall certifi
+#
+# 3. BEDROCK SETUP (if using AWS):
+#    aws configure  # Set up AWS credentials
+#    export AWS_DEFAULT_REGION=eu-central-1
+#
+# 4. OLLAMA SETUP (if using local models):
+#    # Download from https://ollama.ai
+#    # Run: ollama serve (in separate terminal)
+#    # Models auto-download on first use
+#
+# 5. STRANDS SDK SPECIFIC:
+#    For Ollama support: pip install 'strands-agents[ollama]'
+#    For AgentCore: ensure you have AWS credentials configured
+#
+# 6. DATABASE CONNECTIONS:
+#    - Oracle: Requires Oracle client libraries or oracledb (python-only driver)
+#    - Vertica: install vertica-python directly
+#
+# 7. STREAMLIT LAUNCH:
+#    streamlit run ollama_streamlit_v2.py --server.port 8501
+#
+# ============================================================================
