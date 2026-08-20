@@ -93,25 +93,12 @@ PROVIDER_MODELS = {
         "eu.amazon.nova-pro-v1:0",
         "eu.amazon.nova-lite-v1:0", 
     ],
-    "bedrock_strands_local": ['eu.anthropic.claude-haiku-4-5-20251001-v1:0','eu.anthropic.claude-sonnet-5','eu.anthropic.claude-opus-5',
-                              'eu.anthropic.claude-fable-5','eu.anthropic.claude-sonnet-4-6','eu.anthropic.claude-opus-4-8', 
-        "eu.amazon.nova-2-lite-v1:0", "eu.amazon.nova-pro-v1:0","eu.amazon.nova-premier-v1:0", 
-        'eu.anthropic.claude-opus-4-7', 'eu.anthropic.claude-opus-4-6-v1', 
-        'eu.anthropic.claude-opus-4-5-20251101-v1:0',
-        'eu.anthropic.claude-sonnet-4-5-20250929-v1:0',
-        "eu.anthropic.claude-sonnet-4-20250514-v1:0",
-        "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
-        "eu.anthropic.claude-3-5-sonnet-20241022-v2:0",
-        "eu.amazon.nova-pro-v1:0",
-        "eu.amazon.nova-lite-v1:0", ],
     "ollama": ["gemma4:e2b", "granite4.1:8b"],
     "anthropic": ['claude-haiku-4-5-20251001','claude-sonnet-5','claude-opus-5','claude-sonnet-4-6',
          'claude-opus-4-8','claude-opus-4-7', 'claude-fable-5'
     ],
-    "google": [
-        "gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite",
-        "gemini-3-flash-preview", "gemini-3.1-pro-preview",
-    ],
+    "google": ["gemini-3.7-flash","gemini-3.1-pro-preview","gemini-2.5-pro"
+     "gemini-2.5-flash-lite"],
     "openai": ["o4-mini", "gpt-4o", "gpt-4o-mini", "gpt-4.1",
                "gpt-4.1-mini", "gpt-4.1-nano"],
     "openrouter": ["qwen-3.8","gemma-4"],
@@ -1075,8 +1062,8 @@ with tab1:
         # Select right credentials
         bedrock_key = 'bedrock_api'
         if asynch: bedrock_key='bedrock_api_async'
-        provider_key_mapping={'bedrock': bedrock_key,'bedrock_strands_local':'bedrock_api_async','ollama':'ollama','huggingface':'huggingface',
-                              'anthropic':'anthropic','openai':'openai','google':'gemini','opemrouter':'open_router'}
+        provider_key_mapping={'bedrock': bedrock_key,'ollama':'ollama','huggingface':'huggingface',
+                              'anthropic':'anthropic','openai':'openai','google':'gemini','openrouter':'open_router'}
 
         if creds is not None:        
             if (len(creds.keys())!=2) | all(['key' not in k.lower() for k in creds.keys()]):

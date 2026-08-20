@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys, os
+
 try:
     # Load aux DB routines
     import dbConnect as dbc
@@ -24,7 +26,7 @@ def install_package(package_names,pip=True):
     result={}
     for package_name in package_names:
         print(f"Installing {package_name}...")
-        import subprocess
+        import subprocess,sys
         try:
             # sys.executable gets the path to the current Python interpreter
             # This runs: /path/to/python -m pip install <package_name>
@@ -4363,9 +4365,9 @@ def autogluon_automl(
 Canonical workflow: #
 load_timeseries → profile_timeseries → engineer_features → split_dataset → build_model → train_model → evaluate_model → 
 {feature_importance, forecast, plot_results, save_model_bundle} Optional: tune_hyperparameters, walk_forward_validate. 
-""" 
 
-from future import annotations
+
+from __future__ import annotations
 
 import os 
 from typing import Dict, List, Optional
@@ -4373,6 +4375,7 @@ from typing import Dict, List, Optional
 import numpy as np 
 import pandas as pd 
 from strands import tool
+"""
 
 # ======================== DL LEARNING TOOL HELPERS ===========================
 
@@ -5955,7 +5958,7 @@ def walk_forward_validate(
     sequence_window: int = 0,
     scale_features: str = "standard",
     scale_target: bool = True,
-    model_config: Optional[Dict] = None,
+    model_cfg: Optional[Dict] = None,
     epochs: int = 64,
     batch_size: int = 64,
     early_stopping_patience: int = 8,
@@ -5977,7 +5980,7 @@ def walk_forward_validate(
         sequence_window: 0 for tabular models, >1 for recurrent/convolutional ones.
         scale_features: Feature scaler, refit per fold.
         scale_target: Standardise the target per fold.
-        model_config: build_model overrides applied to every fold (same config everywhere).
+        model_cfg: build_model overrides applied to every fold (same config everywhere).
         epochs: Max epochs per fold.
         batch_size: Mini-batch size.
         early_stopping_patience: Patience per fold.
@@ -6012,7 +6015,7 @@ def walk_forward_validate(
                                        scale_features=scale_features, scale_target=scale_target)
                 split["featureset_id"] = featureset_id
                 split["dataset_id"] = f["dataset_id"]
-                cfg = {**_default_build_cfg(), **(model_config or {}), "seed": seed}
+                cfg = {**_default_build_cfg(), **(model_cfg or {}), "seed": seed}
                 set_seed(seed)
                 model = build_keras_model(split, cfg)
                 hist = _fit(model, split, epochs, batch_size, early_stopping_patience)

@@ -43,7 +43,7 @@ from bs4 import BeautifulSoup
 
 from PIL import Image
 
-import base64
+import base64, sys, os
 from io import BytesIO, StringIO
 # ------------------------------------------------------------------------------------ FUNCTIONS
 
@@ -63,7 +63,7 @@ def install_package(package_names,pip=True):
     result={}
     for package_name in package_names:
         print(f"Installing {package_name}...")
-        import subprocess
+        import subprocess, sys
         try:
             # sys.executable gets the path to the current Python interpreter
             # This runs: /path/to/python -m pip install <package_name>
@@ -102,11 +102,6 @@ import asyncio
 import logging
 from typing import Any, AsyncGenerator
 from collections.abc import Iterable
-
-try:
-    import openai
-except:
-    print('WARNING: package OpenAI not installed!')
 
 # from langchain.chat_models import ChatOpenAI # deprecated
 
@@ -194,21 +189,44 @@ except:
 try:
     import ollama
 except:
-    print('WARNING: package Ollama not installed!')
+    try:
+        _=install_package('ollama')
+        import ollama
+    except Exception as e:
+        print(f'WARNING: package Ollama not installed: {e}')
+
+try:
+    import openai
+except:
+    try:
+        _=install_package('openai')
+        import openai
+    except Exception as e:
+        print(f'WARNING: package OpenAI not installed: {e}')
 
 # https://ai.google.dev/api/all-methods
 # pip install anthropic google-generativeai
 
 try:
     #import google-generativeai as genai
-    from google import genai #pip install google-genai
+    from google import genai 
+    from google.genai import types
 except:
-    print('WARNING: package Google GenAI not installed!')
+    try:
+        _=install_package('google-genai')
+        from google import genai
+        from google.genai import types
+    except Exception as e:
+        print(f'WARNING: package Google GenAI not installed: {e}')
 
 try:
     import anthropic
 except:
-    print('WARNING: package Anthropic not installed!')
+    try:
+        _=install_package('anthropic')
+        import anthropic
+    except Exception as e:
+        print(f'WARNING: package Anthropic not installed: {e}')
 
 try:
     from strands import Agent, tool
