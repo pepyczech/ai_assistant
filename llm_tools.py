@@ -1871,7 +1871,7 @@ def bedrock_agent_reflect(prompt=None,model='us.amazon.nova-lite-v1:0', api_url=
     return(messages)
 
 def call_ollama(query, model_code='gemma4:e4b', temp=0.95, sys_prompt=None,
-                 show=0, max_tokens=10000, provider = 'ollama_cloud', api_key=None):
+                 show=0, max_tokens=10000, provider = 'ollama_cloud', odb_creds=None):
     '''
     import os
     import openai
@@ -1904,8 +1904,16 @@ def call_ollama(query, model_code='gemma4:e4b', temp=0.95, sys_prompt=None,
     '''
 
     if provider == 'ollama_cloud':
+
+        if 'ollama_cloud' in odb_creds.keys():
+            API_KEY = odb_creds['ollama_cloud']['API_KEY']
+        elif 'API_KEY' in odb_creds.keys():
+            API_KEY = odb_creds['API_KEY']
+        elif isinstance(odb_creds,str):
+            API_KEY = odb_creds
+
         # --- Ollama Cloud ---
-        resolved_key = api_key or os.environ.get('OLLAMA_API_KEY')
+        resolved_key = API_KEY or os.environ.get('OLLAMA_API_KEY')
         if not resolved_key:
             raise ValueError(
                 "No Ollama Cloud API key found. Set the OLLAMA_API_KEY environment "
@@ -2642,7 +2650,7 @@ def genai_master(query,provider='aws',model_code=None,temp=0.95,max_tokens=4096,
                 r,a=call_agent(query, provider, model = model_code, odb_creds=odb_creds,sys_prompt=sys_prompt,reasoning=reasoning,temp=temp,show=show)
             else:
                 print('Calling Ollama LLM...')
-                r,a=call_ollama(query, model_code=model_code,temp=temp,sys_prompt=sys_prompt,show=show,max_tokens=max_tokens,provider=provider)
+                r,a=call_ollama(query, model_code=model_code,temp=temp,sys_prompt=sys_prompt,show=show,max_tokens=max_tokens,provider=provider,odb_creds=odb_creds)
         elif any(term in provider.lower() for term in ('open-router','router','openrouter','open_router')):
             if agentic:
                 print('Calling OpenRouter agent...')
