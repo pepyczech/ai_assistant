@@ -6188,5 +6188,17 @@ def agentic_toolsets(subset='generic'):
     elif subset == 'vba':
         ALL_TOOLS = [discover_office_files, extract_vba, extract_embedded_data,
                analyze_macros, request_human_review, assemble_python_pipeline]
+    else:
+        ALL_TOOLS = [
+                    get_current_date,
+                    word_count,
+                    calculate,
+                    run_python_code,
+                    web_search,
+                    read_file,
+                    write_file,
+                    run_shell_command,
+                    json_query,
+                ]
 
     return ALL_TOOLS
