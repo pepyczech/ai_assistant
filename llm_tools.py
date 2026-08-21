@@ -8,6 +8,8 @@ import enum
 import math
 
 import random
+import random as _random
+
 from typing import Optional, List, Any, Dict, Callable
 
 import requests
@@ -247,7 +249,7 @@ except:
     BeforeToolInvocationEvent as BeforeToolCallEvent,
     AfterToolInvocationEvent as AfterToolCallEvent,
     )
-    
+
 from strands.hooks import HookProvider, HookRegistry
 
 try:
@@ -259,6 +261,7 @@ from strands.models.model import Model
 from strands.types.content import ContentBlock, Messages, SystemContentBlock
 from strands.types.streaming import StreamEvent
 from strands.types.tools import ToolChoice, ToolSpec
+from strands.types.exceptions import ModelThrottledException
 
 try:
     from strands.models.ollama import OllamaModel
@@ -4121,6 +4124,7 @@ def define_openrouter_agent(
     tools_import: Optional[list] = None,
     odb_creds: Optional[dict] = None,
     extra_params: Optional[dict] = None,
+    fallback_models: Optional[list] = None,
 ):
     """
     Strands Agent backed by OpenRouter via the OpenAI-compatible provider.
@@ -4168,7 +4172,20 @@ def define_openrouter_agent(
 
     params = {"temperature": temp, "max_tokens": max_tokens}
     if reasoning:
-        params["extra_body"] = {"reasoning": {"effort": "high"}}
+        params.setdefault("extra_body", {})["reasoning"] = {"effort": "high"}
+
+    # --- NEW: OpenRouter-native fallback routing, mirrors call_openrouter ---
+    default_fallbacks = [
+        resolved_model,
+        "z-ai/glm-5.2:free",
+        "openrouter/free",
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+    ]
+    models_list = list(dict.fromkeys(fallback_models or default_fallbacks))  # de-dup, keep order
+    params.setdefault("extra_body", {})["models"] = models_list
+    # Optional: bias provider selection toward faster/more available upstreams
+    params["extra_body"].setdefault("provider", {"sort": "throughput", "allow_fallbacks": True})
+
     if extra_params:
         params.update(extra_params)
 
@@ -4209,8 +4226,10 @@ def call_openrouter_agent(
     tools_import: Optional[list] = None,
     odb_creds: Optional[dict] = None,
     new_session: int = 0,
+    max_retries: int = 3,          
+    base_backoff: float = 3.0,
 ):
-    """Run (and cache) an OpenRouter-backed Strands agent."""
+    """Run (and cache) an OpenRouter-backed Strands agent, with retry on throttling."""
     key = 'openrouter'
 
     if new_session:
@@ -4227,13 +4246,25 @@ def call_openrouter_agent(
             odb_creds=odb_creds,
         )
 
-    out = AGENT_SESSIONS[key](prompt)
+    last_err = None
+    for attempt in range(max_retries + 1):
+        try:
+            out = AGENT_SESSIONS[key](prompt)
+            if show:
+                print("\n=== FINAL ANSWER ===")
+                print(out)
+            return out
+        except ModelThrottledException as e:
+            last_err = e
+            if attempt == max_retries:
+                break
+            wait = base_backoff * (2 ** attempt) + _random.uniform(0, 1)
+            if show:
+                print(f"[openrouter-agent] throttled (attempt {attempt+1}/{max_retries}), "
+                      f"retrying in {wait:.1f}s...")
+            time.sleep(wait)
 
-    if show:
-        print("\n=== FINAL ANSWER ===")
-        print(out)
-
-    return out
+    raise last_err
 
 
 # ============================================================================
