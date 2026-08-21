@@ -1083,7 +1083,7 @@ with tab1:
         # Select right credentials
         bedrock_key = 'bedrock_api'
         if asynch: bedrock_key='bedrock_api_async'
-        provider_key_mapping={'bedrock': bedrock_key,'ollama':'ollama_cloud','ollama_cloud':'ollama','huggingface':'huggingface',
+        provider_key_mapping={'bedrock': bedrock_key,'ollama_cloud':'ollama_cloud','huggingface':'huggingface',
                               'anthropic':'anthropic','openai':'openai','google':'gemini','openrouter':'open_router'}
 
         if provider=='ollama':creds=None
