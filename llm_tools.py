@@ -2495,7 +2495,8 @@ def call_openrouter(query, model_code='openai/gpt-4o-mini', temp=0.95, sys_promp
         print(f"Resolved model: {resolved_model}")
         print(prompts)
 
-    extra_body = {}
+    fall_back_models = [resolved_model,"z-ai/glm-5.2:free","openrouter/free","nvidia/nemotron-3-ultra-550b-a55b:free"]
+    extra_body = {"models": list(set(fall_back_models))}
     if reasoning:
         extra_body["reasoning"] = {"effort": "high"}
 
@@ -2505,7 +2506,7 @@ def call_openrouter(query, model_code='openai/gpt-4o-mini', temp=0.95, sys_promp
         temperature=temp,
         max_tokens=max_tokens,
         extra_headers=extra_headers,
-        extra_body=extra_body if extra_body else None,
+        extra_body=extra_body,
     )
     final_response = response.choices[0].message.content
 
@@ -4102,7 +4103,6 @@ def resolve_openrouter_model(
         resolved = f"{resolved}:online"
 
     return resolved
-
 
 def define_openrouter_agent(
     model_code: str = 'openai/gpt-4o-mini',
