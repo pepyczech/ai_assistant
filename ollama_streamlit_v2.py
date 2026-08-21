@@ -94,7 +94,7 @@ PROVIDER_MODELS = {
         "eu.amazon.nova-lite-v1:0", 
     ],
     "ollama": ["gemma4:e2b", "granite4.1:8b"],
-    "ollama_cloud": ["kimi-k3:cloud", "deepseek-v4-pro:cloud","gpt-oss:cloud","minimax-m3:cloud"],
+    "ollama_cloud": ["kimi-k3:cloud", "deepseek-v4-pro:cloud","gpt-oss:120b-cloud","minimax-m3:cloud"],
     "anthropic": ['claude-haiku-4-5-20251001','claude-sonnet-5','claude-opus-5','claude-sonnet-4-6',
          'claude-opus-4-8','claude-opus-4-7', 'claude-fable-5'
     ],
@@ -168,7 +168,7 @@ MODEL_DISPLAY_NAMES = {
     # Ollama Cloud
     "kimi-k3:cloud":"Kimi K3", 
     "deepseek-v4-pro:cloud":"DeepSeek V4 Pro",
-    "gpt-oss:cloud":"GPT-OSS",
+    "gpt-oss:120b-cloud":"GPT-OSS 120B",
     "minimax-m3:cloud":"Minimax M3",
 }
 
