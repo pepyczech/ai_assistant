@@ -78,7 +78,7 @@ pillow-heif
 
 # ── AGENTIC FRAMEWORKS ────────────────────────────────────────────────────
 # Strands SDK for structured agentic workflows
-strands-agents
+strands-agents==1.42.0
 #strands-agents-tools
 
 # ── DATA & FORMAT UTILITIES ───────────────────────────────────────────────

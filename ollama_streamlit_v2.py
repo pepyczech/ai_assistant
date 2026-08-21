@@ -94,14 +94,15 @@ PROVIDER_MODELS = {
         "eu.amazon.nova-lite-v1:0", 
     ],
     "ollama": ["gemma4:e2b", "granite4.1:8b"],
+    "ollama_cloud": ["kimi-k3:cloud", "deepseek-v4-pro:cloud","gpt-oss:cloud","minimax-m3:cloud"],
     "anthropic": ['claude-haiku-4-5-20251001','claude-sonnet-5','claude-opus-5','claude-sonnet-4-6',
          'claude-opus-4-8','claude-opus-4-7', 'claude-fable-5'
     ],
-    "google": ["gemini-3.7-flash","gemini-3.1-pro-preview","gemini-2.5-pro"
-     "gemini-2.5-flash-lite"],
-    "openai": ["o4-mini", "gpt-4o", "gpt-4o-mini", "gpt-4.1",
-               "gpt-4.1-mini", "gpt-4.1-nano"],
-    "openrouter": ["qwen-3.8","gemma-4"],
+    "google": ["gemini-3.5-flash-lite","gemini-3.7-flash","gemini-3.1-pro-preview","gemini-2.5-pro"],
+    "openai": ["gpt-5.6-luna","gpt-5.6-terra","gpt-5.6-sol","gpt-4.1-nano","gpt-4.1","gpt-4.1-mini",
+                "o4-mini", "o3", "gpt-4o-mini"],
+    "openrouter": ["z-ai/glm-5.2:free","nvidia/nemotron-3-ultra-550b-a55b:free","openrouter/free","openai/gpt-5.6-luna","openai/gpt-5.6-sol",
+                   "google/gemini-3.7-flash","moonshotai/kimi-k3","qwen/qwen3.8-max","z-ai/glm-5.3","deepseek/deepseek-v4-flash","deepseek/deepseek-v4-pro"],
 }
 
 # Maps raw model IDs to short, human-friendly labels for the sidebar dropdown.
@@ -137,18 +138,38 @@ MODEL_DISPLAY_NAMES = {
     "claude-opus-4-7":                      "Claude Opus 4.7",
     "claude-fable-5":                       "Claude Fable 5",
     # Google
-    "gemini-2.5-flash":         "Gemini 2.5 Flash",
-    "gemini-2.0-flash":         "Gemini 2.0 Flash",
-    "gemini-2.0-flash-lite":    "Gemini 2.0 Flash Lite",
-    "gemini-3-flash-preview":   "Gemini 3 Flash (preview)",
-    "gemini-3.1-pro-preview":   "Gemini 3.1 Pro (preview)",
+    "gemini-3.5-flash-lite":         "Gemini 3.5 Flash Lite",
+    "gemini-3.7-flash":             "Gemini 3.7 Flash",
+    "gemini-3.1-pro-preview":    "Gemini 3.1 Pro",
+    "gemini-2.5-pro":   "Gemini 2.5 Pro",
     # OpenAI
-    "o4-mini":      "o4-mini",
-    "gpt-4o":       "GPT-4o",
-    "gpt-4o-mini":  "GPT-4o mini",
-    "gpt-4.1":      "GPT-4.1",
-    "gpt-4.1-mini": "GPT-4.1 mini",
+    "gpt-5.6-luna": "GPT-5.6 Luna (S)",
+    "gpt-5.6-terra": "GPT-5.6 Terra (M)",
+    "gpt-5.6-sol": "GPT-5.6 Sol (L)",
     "gpt-4.1-nano": "GPT-4.1 nano",
+    "gpt-4.1-mini": "GPT-4.1 mini",
+    "gpt-4.1":      "GPT-4.1",
+    "o4-mini":      "o4-mini",
+    "o3":       "o3",
+    # Open router
+    "z-ai/glm-5.2:free":"GLM 5.2 Free",
+    "nvidia/nemotron-3-ultra-550b-a55b:free":"NVIDIA Nemotron 3 Ultra Free",
+    "openrouter/free":"Random Free LLM",
+    "openai/gpt-5.6-luna":"GPT-5.6 Luna (S)",
+    "google/gemini-3.7-flash":"Gemini 3.7 Flash",
+    "moonshotai/kimi-k3":"Kimi K3",
+    "qwen/qwen3.8-max":"Qwen 3.8 Max",
+    "z-ai/glm-5.3":"GLM 5.3",
+    "deepseek/deepseek-v4-flash":"DeepSeek V4 Flash",
+    "deepseek/deepseek-v4-pro":"DeepSeek V4 Pro",
+    # Ollama (local)
+    "gemma4:e2b": "Gemma 4 2B",
+    "granite4.1:8b": "Granite 4.1 8B",
+    # Ollama Cloud
+    "kimi-k3:cloud":"Kimi K3", 
+    "deepseek-v4-pro:cloud":"DeepSeek V4 Pro",
+    "gpt-oss:cloud":"GPT-OSS",
+    "minimax-m3:cloud":"Minimax M3",
 }
 
 # ------------------ PRICING -------------------------------------------
@@ -932,12 +953,12 @@ with tab1:
             list(PROVIDER_MODELS.keys()),
             format_func=lambda x: {
                 "bedrock": "🌐 Bedrock (Amazon)",
-                "ollama": "🖥️ Ollama (local)",
-                "ollama-cloud": "☁️ Ollama (cloud)",
-                "anthropic": "🟠 Claude (Anthropic)",
-                "google": "🔵 Gemini (Google)",
-                "openai": "🟢 GPT (OpenAI)",
-                "openrouter": "🔀 OpenRouter (multi-provider)",
+                "ollama": "🖥️ Ollama Local",
+                "ollama_cloud": "☁️ Ollama Cloud",
+                "anthropic": "🟠 Anthropic",
+                "google": "🔵 Google",
+                "openai": "🟢 OpenAI",
+                "openrouter": "🔀 OpenRouter",
             }.get(x, x),
         )
 
@@ -1062,12 +1083,19 @@ with tab1:
         # Select right credentials
         bedrock_key = 'bedrock_api'
         if asynch: bedrock_key='bedrock_api_async'
-        provider_key_mapping={'bedrock': bedrock_key,'ollama':'ollama','huggingface':'huggingface',
+        provider_key_mapping={'bedrock': bedrock_key,'ollama':'ollama','ollama_cloud':'ollama','huggingface':'huggingface',
                               'anthropic':'anthropic','openai':'openai','google':'gemini','openrouter':'open_router'}
 
-        if creds is not None:        
+        if provider=='ollama':creds=None
+
+        if creds is not None:  
+              
             if (len(creds.keys())!=2) | all(['key' not in k.lower() for k in creds.keys()]):
-                credentials=creds[provider_key_mapping[provider]]
+                try:
+                    credentials=creds[provider_key_mapping[provider]]
+                except:
+                    credentials=creds['anthropic']
+                    provider = 'anthropic'
             else:
                 credentials=creds
 
