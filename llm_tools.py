@@ -4293,27 +4293,29 @@ def call_agent(prompt, provider: str = 'claude', model: Optional[str] = None, **
     model = model or AGENT_DEFAULT_MODELS.get(provider)
 
     if provider in ('claude', 'anthropic'):
-        return call_claude_agent(prompt, model=model, **kwargs)
+        out= call_claude_agent(prompt, model=model, **kwargs)
 
-    if provider in ('gemini', 'google'):
-        return call_gemini_agent(prompt, model=model, **kwargs)
+    elif provider in ('gemini', 'google'):
+        out=  call_gemini_agent(prompt, model=model, **kwargs)
 
-    if provider in ('gpt', 'openai'):
-        return call_gpt_agent(prompt, model=model, **kwargs)
+    elif provider in ('gpt', 'openai'):
+        out=  call_gpt_agent(prompt, model=model, **kwargs)
 
-    if provider == 'openrouter':
-        return call_openrouter_agent(prompt, model=model, **kwargs)
+    elif provider == 'openrouter':
+        out=  call_openrouter_agent(prompt, model=model, **kwargs)
 
-    if provider == 'ollama':
-        return call_ollama_agent(prompt, model=model, **kwargs)
+    elif provider in ['ollama','ollama_cloud']:
+        out=  call_ollama_agent(prompt, model=model, **kwargs)
 
-    if provider == 'bedrock':
-        return call_bedrock_agent_api_async(prompt, model_id=model, **kwargs)
+    elif provider == 'bedrock':
+        out=  call_bedrock_agent_api_async(prompt, model_id=model, **kwargs)
+    else:
+        raise ValueError(
+            "provider must be one of: claude/anthropic, gemini/google, gpt/openai, "
+            "openrouter, ollama, bedrock"
+        )
 
-    raise ValueError(
-        "provider must be one of: claude/anthropic, gemini/google, gpt/openai, "
-        "openrouter, ollama, bedrock"
-    )
+    return(out,out)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # AGENT FACTORY  — same signature and structure as branding_agent.py
