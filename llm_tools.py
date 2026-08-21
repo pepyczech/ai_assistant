@@ -1871,16 +1871,16 @@ def bedrock_agent_reflect(prompt=None,model='us.amazon.nova-lite-v1:0', api_url=
     return(messages)
 
 def call_ollama(query, model_code='gemma4:e4b', temp=0.95, sys_prompt=None,
-                 show=0, max_tokens=10000, option='A', api_key=None):
+                 show=0, max_tokens=10000, provider = 'ollama_cloud', api_key=None):
     '''
     import os
     import openai
 
-    option='A' -> Local Ollama (default)
+    provider == 'ollama' -> Local Ollama (default)
         Local models e.g. ['gemma4:e4b', 'gemma4:e2b']
         Runs against your local Ollama server (http://localhost:11434/v1)
 
-    option='B' -> Ollama Cloud
+    provider == 'ollama_cloud' -> Ollama Cloud
         Cloud-hosted models e.g. ['gpt-oss:120b-cloud', 'deepseek-v3.1:671b-cloud',
                                    'qwen3-coder:480b-cloud']
         Runs against Ollama's cloud API (https://ollama.com/v1)
@@ -1903,7 +1903,7 @@ def call_ollama(query, model_code='gemma4:e4b', temp=0.95, sys_prompt=None,
     )
     '''
 
-    if option == 'B':
+    if provider == 'ollama_cloud':
         # --- Ollama Cloud ---
         resolved_key = api_key or os.environ.get('OLLAMA_API_KEY')
         if not resolved_key:
@@ -1915,7 +1915,7 @@ def call_ollama(query, model_code='gemma4:e4b', temp=0.95, sys_prompt=None,
             base_url='https://ollama.com/v1',
             api_key=resolved_key
         )
-    elif option == 'A':
+    elif provider == 'ollama':
         # --- Local Ollama ---
         client = openai.OpenAI(
             base_url='http://localhost:11434/v1',
@@ -2635,13 +2635,14 @@ def genai_master(query,provider='aws',model_code=None,temp=0.95,max_tokens=4096,
                 print('Calling Google Gemini service...')
                 r,a=call_gemini(query, model_code=model_code, temp=temp, sys_prompt=sys_prompt, show=show, max_tokens=max_tokens, web_search=web_search,
                                 odb_creds=odb_creds, reasoning=reasoning)
-        elif any(term in provider.lower() for term in ('ollama','local','localhost')):
+        elif any(term in provider.lower() for term in ('ollama','local','localhost','ollama-cloud','ollamacloud','ollama_cloud')):
+            if any(term in provider.lower() for term in ('ollama-cloud','ollamacloud','ollama_cloud')): provider='ollama_cloud'
             if agentic:
-                print('Calling local Ollama agent...')
+                print('Calling Ollama agent...')
                 r,a=call_agent(query, provider, model = model_code, odb_creds=odb_creds,sys_prompt=sys_prompt,reasoning=reasoning,temp=temp,show=show)
             else:
-                print('Calling local Ollama LLM...')
-                r,a=call_ollama(query, model_code=model_code,temp=temp,sys_prompt=sys_prompt,show=show,max_tokens=max_tokens)
+                print('Calling Ollama LLM...')
+                r,a=call_ollama(query, model_code=model_code,temp=temp,sys_prompt=sys_prompt,show=show,max_tokens=max_tokens,provider=provider)
         elif any(term in provider.lower() for term in ('open-router','router','openrouter','open_router')):
             if agentic:
                 print('Calling OpenRouter agent...')
@@ -2657,13 +2658,6 @@ def genai_master(query,provider='aws',model_code=None,temp=0.95,max_tokens=4096,
             else:
                 print('Calling Huggingface LLM...')
                 #r,a=call_hf(query, model_code=model_code, temp=temp, sys_prompt=sys_prompt,show=show, max_tokens=max_tokens, odb_creds=odb_creds)
-        elif any(term in provider.lower() for term in ('ollama-cloud','ollamacloud','ollama_cloud')):
-            if agentic:
-                print('Calling Ollama Cloud agent...')
-                # FIXME
-            else:
-                print('Calling Ollama Cloud LLM...')
-                # FIXME
         else:
             raise Exception('Invalid provider...defaulting to OLLAMA with default settings')
             
