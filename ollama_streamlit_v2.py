@@ -1094,7 +1094,7 @@ with tab1:
                 try:
                     credentials=creds[provider_key_mapping[provider]]
                 except:
-                    credentials=creds['openrouter']
+                    credentials=creds['open_router']
                     provider = 'openrouter'
                     model = "openrouter/free"
             else:
