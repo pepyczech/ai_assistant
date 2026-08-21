@@ -62,7 +62,7 @@ import pandas as pd
 try:
     from strands import Agent, tool
     from strands.models import BedrockModel
-    from strands_tools import file_read
+    if aws:from strands_tools import file_read
     from strands.types.exceptions import MaxTokensReachedException
 except:
     if aws:
@@ -71,7 +71,7 @@ except:
         _=install_package('strands-agents')
         from strands import Agent, tool
         from strands.models import BedrockModel
-        from strands_tools import file_read
+        #from strands_tools import file_read
         from strands.types.exceptions import MaxTokensReachedException
 
 # loop_observer is your existing callback handler; imported as in the original.
